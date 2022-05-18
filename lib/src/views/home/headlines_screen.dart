@@ -130,7 +130,7 @@ class _HeadlinesTabState extends State<_HeadlinesTab>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      getHeadlines();
+     // getHeadlines();
     });
   }
 
@@ -150,13 +150,17 @@ class _HeadlinesTabState extends State<_HeadlinesTab>
       },
       child: Selector<HeadlinesViewModel, Response<NewsResponseModel>?>(
           builder: (context, headlinesResponse, child) {
-            if (headlinesResponse != null &&
-                headlinesResponse.status == Status.success) {
+            if (headlinesResponse == null ||
+                headlinesResponse.status == Status.loading) {
+              return const Center(
+                child: CupertinoActivityIndicator(),
+              );
+            } else if (headlinesResponse.status == Status.success) {
               List<Articles> articles = headlinesResponse.data?.articles ?? [];
               if (articles.isEmpty) {
                 return Center(
                   child: Text(
-                    'No Headlines Available',
+                    'No News Items Available',
                     style: Theme.of(context).textTheme.headline6,
                   ),
                 );
@@ -203,7 +207,7 @@ class _HeadlinesTabState extends State<_HeadlinesTab>
                             ),
                       SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {
-                          return newsItem(articles[index]);
+                          return NewsItem(article: articles[index]);
                         }, childCount: articles.length),
                       ),
                       const SliverToBoxAdapter(
@@ -257,12 +261,6 @@ class _HeadlinesTabState extends State<_HeadlinesTab>
           },
           selector: (context, viewModel) =>
               viewModel.headlinesList[widget.category.name]),
-    );
-  }
-
-  Widget newsItem(Articles article) {
-    return NewsItem(
-      article: article,
     );
   }
 

@@ -21,8 +21,7 @@ class _MainScreenState extends State<MainScreen> {
   List<Map<String, dynamic>> navItems = [
     {'index': 0, 'title': 'Headlines', 'icon': Icon(Icons.newspaper)},
     {'index': 1, 'title': 'Explore', 'icon': Icon(Icons.public)},
-    {'index': 2, 'title': 'Newsstand', 'icon': Icon(Icons.menu_book_rounded)},
-    {'index': 3, 'title': 'Settings', 'icon': Icon(Icons.settings)},
+    {'index': 2, 'title': 'Settings', 'icon': Icon(Icons.settings)},
   ];
 
   @override
@@ -102,7 +101,6 @@ class _MainScreenState extends State<MainScreen> {
         children: const <Widget>[
           HeadlinesScreen(),
           ExploreScreen(),
-          NewsstandScreen(),
           SettingsScreen(),
         ],
       ),
