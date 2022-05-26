@@ -11,11 +11,10 @@ class SplashScreen extends StatelessWidget {
       Navigator.of(context).pushReplacementNamed(MainScreen.routeName);
     });
     return Scaffold(
-      appBar: AppBar(
-        title: Text(routeName),
       
-      ),
-      body: SafeArea(child: Text(routeName)),
+      body: SafeArea(child: Center(
+        child: Icon(Icons.newspaper_rounded, size: 100, color: Theme.of(context).colorScheme.secondary,),
+      )),
     );
   }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:news_app_project/src/views/home/search_screen.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 import 'explore_screen.dart';
 import 'headlines_screen.dart';
-import 'newsstand_screen.dart';
 import 'settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -15,13 +15,12 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final PageController _pageController = PageController();
   int _currentIndex = 0;
 
   List<Map<String, dynamic>> navItems = [
-    {'index': 0, 'title': 'Headlines', 'icon': Icon(Icons.newspaper)},
-    {'index': 1, 'title': 'Explore', 'icon': Icon(Icons.public)},
-    {'index': 2, 'title': 'Settings', 'icon': Icon(Icons.settings)},
+    {'index': 0, 'title': 'Headlines', 'icon': const Icon(Icons.newspaper)},
+    {'index': 1, 'title': 'Explore', 'icon': const Icon(Icons.public)},
+    {'index': 2, 'title': 'Settings', 'icon': const Icon(Icons.settings)},
   ];
 
   @override
@@ -37,8 +36,19 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget searchButton() {
     return IconButton(
-      icon: Icon(Icons.search),
-      onPressed: () {},
+      icon: const Icon(Icons.search),
+      onPressed: () {
+        Navigator.of(context).push(PageRouteBuilder(transitionsBuilder:
+            (context, animation, secondaryAnimation, child) {
+          final Tween<Offset> offsetTween = Tween(begin: const Offset(0, 1), end: const Offset(0,0));
+          return SlideTransition(
+            position: animation.drive(offsetTween),
+            child: child,
+          );
+        }, pageBuilder: (context, animation, secondaryAnimation) {
+          return const SearchScreen();
+        }));
+      },
     );
   }
 
@@ -65,7 +75,7 @@ class _MainScreenState extends State<MainScreen> {
         children: const <Widget>[
           HeadlinesScreen(),
           ExploreScreen(),
-          NewsstandScreen(),
+          
           SettingsScreen(),
         ],
       ),
@@ -114,7 +124,7 @@ class _MainScreenState extends State<MainScreen> {
       body: Row(
         children: [
           AnimatedContainer(
-            duration: Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 300),
             width: showDrawer ? 300 : 0,
             color: Theme.of(context).cardColor,
             child: SingleChildScrollView(
@@ -148,7 +158,7 @@ class _MainScreenState extends State<MainScreen> {
                         showDrawer = !showDrawer;
                       });
                     },
-                    icon: Icon(Icons.menu)),
+                    icon: const Icon(Icons.menu)),
                 title: Text(navItems[_currentIndex]['title']),
                 centerTitle: true,
                 elevation: 0,
@@ -158,7 +168,7 @@ class _MainScreenState extends State<MainScreen> {
                 children: const <Widget>[
                   HeadlinesScreen(),
                   ExploreScreen(),
-                  NewsstandScreen(),
+                  
                   SettingsScreen(),
                 ],
               ),

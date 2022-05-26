@@ -56,7 +56,6 @@ class _WeatherWidgetState extends State<WeatherWidget>
     if (_locationData != null) {
       weatherResponse = Response.loading();
       setState(() {});
-
       weatherResponse = await locator<WeatherRepository>()
           .getWeather(_locationData!.latitude!, _locationData!.longitude!);
       setState(() {});

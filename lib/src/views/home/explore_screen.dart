@@ -8,6 +8,7 @@ import 'package:news_app_project/src/models/news_response_model.dart';
 import 'package:news_app_project/src/models/response_model.dart';
 import 'package:news_app_project/src/view_models/explore_view_model.dart';
 import 'package:news_app_project/src/views/home/headlines_screen.dart';
+import 'package:news_app_project/src/views/home/news_item.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/strings.dart';
@@ -24,18 +25,20 @@ class _ExploreScreenState extends State<ExploreScreen>
   bool isLoadingMoreItems = false;
   int currentPage = 1;
 
+  Map<String, dynamic>? filters;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      // getAllNews();
+      getAllNews();
     });
   }
 
   Future getAllNews() {
     final viewModel = Provider.of<ExploreViewModel>(context, listen: false);
 
-    return viewModel.getAllNews();
+    return viewModel.getAllNews(filters: filters);
   }
 
   @override
@@ -49,13 +52,22 @@ class _ExploreScreenState extends State<ExploreScreen>
           Container(
             alignment: Alignment.centerRight,
             child: IconButton(
-              icon: Icon(Icons.filter_list_rounded),
-              onPressed: () {
-                showDialog(
+              icon: const Icon(Icons.filter_list_rounded),
+              onPressed: () async {
+                Map<String, dynamic>? selectedFilters = await showDialog(
                     context: context,
                     builder: (context) {
-                      return NewsFiltersDialog();
+                      return NewsFiltersDialog(
+                        filters: filters,
+                      );
                     });
+
+                if (selectedFilters != null) {
+                  setState(() {
+                    filters = selectedFilters;
+                  });
+                  getAllNews();
+                }
               },
             ),
           ),
@@ -85,7 +97,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                         },
                         child: Center(
                           child: ConstrainedBox(
-                            constraints: BoxConstraints(maxWidth: 900),
+                            constraints: const BoxConstraints(maxWidth: 900),
                             child: CustomScrollView(
                               slivers: [
                                 SliverList(
@@ -166,7 +178,8 @@ class _ExploreScreenState extends State<ExploreScreen>
       currentPage = currentPage + 1;
       log('getting data for page $currentPage');
       isLoadingMoreItems = true;
-      await staticViewModel.getAllNewsNextPage(page: currentPage);
+      await staticViewModel.getAllNewsNextPage(
+          page: currentPage, filters: filters);
       isLoadingMoreItems = false;
     }
   }
@@ -178,55 +191,97 @@ class _ExploreScreenState extends State<ExploreScreen>
 class NewsFiltersDialog extends StatefulWidget {
   const NewsFiltersDialog({
     Key? key,
+    this.filters,
   }) : super(key: key);
+
+  final Map<String, dynamic>? filters;
 
   @override
   State<NewsFiltersDialog> createState() => _NewsFiltersDialogState();
 }
 
 class _NewsFiltersDialogState extends State<NewsFiltersDialog> {
-  List<String> sortOptions = [
-    'Default',
-    'Popularity',
-    'Relevance',
-    'Published At',
+  List<Map<String, String>> sortOptions = [
+    {'title': 'Popularity', 'key': 'popularity'},
+    {'title': 'Relevance', 'key': 'relevance'},
+    {'title': 'Published At', 'key': 'publishedAt'},
   ];
 
-  String selectedOption = 'default';
+  String selectedOption = 'publishedAt';
   DateTime? from;
   DateTime? to;
   DateFormat displayDateFormat = DateFormat('dd-MM-yyyy');
+  DateFormat dateFormat = DateFormat('yyyy-MM-dd');
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.filters != null) {
+      selectedOption = widget.filters!['sortBy'] ?? 'publishedAt';
+      from = widget.filters!['from'] != null
+          ? dateFormat.parse(widget.filters!['from'])
+          : null;
+      to = widget.filters!['to'] != null
+          ? dateFormat.parse(widget.filters!['to'])
+          : null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       actions: [
-        TextButton(onPressed: (){
-          Navigator.pop(context);
-        
-        }, child: Text('Cancel')),
-        TextButton(onPressed: (){
-          Navigator.pop(context);
-        
-        }, child: Text('Confirm')),
+        TextButton(
+          child: const Text('Clear All'),
+          onPressed: () {
+            Navigator.of(context).pop(<String, dynamic>{});
+          },
+        ),
+        TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel')),
+        TextButton(
+            onPressed: () {
+              Map<String, dynamic> filters = {
+                'sortBy': selectedOption,
+              };
+
+              if (from != null && to != null) {
+                filters['from'] = dateFormat.format(from!);
+                filters['to'] = dateFormat.format(to!);
+              }
+
+              Navigator.of(context).pop(filters);
+            },
+            child: const Text('Confirm')),
       ],
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Filter'),
-          SizedBox(
+          const Text('Filter by date'),
+          const SizedBox(
             height: 8,
           ),
-          Row(
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                  child: OutlinedButton.icon(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('From'),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  OutlinedButton.icon(
                       onPressed: () async {
                         DateTime? selected = await showDatePicker(
                             context: context,
-                            initialDate: from?? DateTime.now(),
-                            firstDate:
-                                DateTime.now().subtract(Duration(days: 180)),
+                            initialDate: from ?? DateTime.now(),
+                            firstDate: DateTime.now()
+                                .subtract(const Duration(days: 180)),
                             lastDate: DateTime.now());
                         if (selected != null) {
                           setState(() {
@@ -234,15 +289,23 @@ class _NewsFiltersDialogState extends State<NewsFiltersDialog> {
                           });
                         }
                       },
-                      icon: Icon(Icons.calendar_today),
+                      icon: const Icon(Icons.calendar_today),
                       label: Text(from == null
-                          ? 'From'
-                          : displayDateFormat.format(from!)))),
-              SizedBox(
+                          ? 'Select Date'
+                          : displayDateFormat.format(from!))),
+                ],
+              ),
+              const SizedBox(
                 width: 8,
               ),
-              Expanded(
-                  child: OutlinedButton.icon(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('To'),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  OutlinedButton.icon(
                       onPressed: from != null
                           ? () async {
                               DateTime? selected = await showDatePicker(
@@ -257,22 +320,24 @@ class _NewsFiltersDialogState extends State<NewsFiltersDialog> {
                               }
                             }
                           : null,
-                      icon: Icon(Icons.calendar_today),
-                      label: Text(
-                          to == null ? 'To' : displayDateFormat.format(to!)))),
+                      icon: const Icon(Icons.calendar_today),
+                      label: Text(to == null
+                          ? 'Select Date'
+                          : displayDateFormat.format(to!))),
+                ],
+              ),
             ],
           ),
-          Divider(),
-          Text('Sort'),
-          SizedBox(
+          const Divider(),
+          const Text('Sort'),
+          const SizedBox(
             height: 8,
           ),
           DropdownButton<String>(
               value: selectedOption,
               items: sortOptions
                   .map((e) => DropdownMenuItem<String>(
-                      value: e.toLowerCase().replaceAll(' ', ''),
-                      child: Text(e)))
+                      value: e['key'], child: Text(e['title']!)))
                   .toList(),
               onChanged: (value) {
                 selectedOption = value ?? 'default';

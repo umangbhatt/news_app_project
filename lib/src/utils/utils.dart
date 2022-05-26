@@ -53,10 +53,10 @@ class Utils{
       return '${(difference.inDays / 365).floor()}mon';
     } else if ((difference.inDays / 30).floor() >= 1) {
       return (numericDates) ? '1mon' : 'Last month';
-      // } else if ((difference.inDays / 7).floor() >= 2) {
-      //   return '${(difference.inDays / 7).floor()} weeks ago';
-      // } else if ((difference.inDays / 7).floor() >= 1) {
-      //   return (numericDates) ? '1 week ago' : 'Last week';
+      } else if ((difference.inDays / 7).floor() >= 2) {
+        return '${(difference.inDays / 7).floor()} weeks ago';
+      } else if ((difference.inDays / 7).floor() >= 1) {
+        return (numericDates) ? '1 week ago' : 'Last week';
     } else if (difference.inDays >= 2) {
       return '${difference.inDays}d';
     } else if (difference.inDays >= 1) {

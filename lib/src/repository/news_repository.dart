@@ -47,5 +47,25 @@ class NewsRepository {
     }
   }
 
+  Future<Response<NewsResponseModel>> searchNews(
+      Map<String, dynamic> params, String searchQuery) async {
+        params['q'] = searchQuery;
+    Response<dynamic> response = await locator<NewsApiClient>()
+        .getRequest(url: ApiConstants.everythingURL, params: params);
+
+    if (response.status == Status.error) {
+      return Response.error(response.message);
+    } else {
+      try {
+        return Response.completed(
+          NewsResponseModel.fromJson(response.data),
+        );
+      } catch (e) {
+        log('error in parsing all news data $e');
+        return Response.error(AppStrings.defaultErrorMsg);
+      }
+    }
+  }
+
 
 }
