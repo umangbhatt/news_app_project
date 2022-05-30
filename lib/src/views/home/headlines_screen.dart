@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-
 import 'package:flutter/cupertino.dart';
 
 import 'package:flutter/material.dart';
@@ -107,7 +106,7 @@ class HeadlinesScreen extends StatelessWidget {
         const SizedBox(width: 16),
         const Padding(
           padding: EdgeInsets.only(right: 32, top: 32),
-          child: const SizedBox(
+          child: SizedBox(
               width: 300,
               child: WeatherWidget(
                 width: 300,
@@ -135,7 +134,7 @@ class _HeadlinesTabState extends State<_HeadlinesTab>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-       getHeadlines();
+      getHeadlines();
     });
   }
 
@@ -149,6 +148,7 @@ class _HeadlinesTabState extends State<_HeadlinesTab>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return RefreshIndicator(
       onRefresh: () async {
         await getHeadlines();
@@ -233,8 +233,7 @@ class _HeadlinesTabState extends State<_HeadlinesTab>
                   ),
                 );
               }
-            } else if (headlinesResponse != null &&
-                headlinesResponse.status == Status.error) {
+            } else if (headlinesResponse.status == Status.error) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
@@ -290,5 +289,3 @@ class _HeadlinesTabState extends State<_HeadlinesTab>
   @override
   bool get wantKeepAlive => true;
 }
-
-
